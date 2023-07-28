@@ -100,19 +100,58 @@ export default function Home() {
   }
 
   function handleCalculation() {
-    // if lastvalue != number { pop last value }
-    // while array.length > 1 {
-    //   handlemultiplyAndDivision: go throught array searching / or *
-    //   if it finds it, replace n-1 and n+1 for the result of this calculation 
-    //   handleSumAndSubstract: same as above, but for + or -
-    // }
-    let result = numbersArray;
-    if (parseInt(lastValue) == 'NaN') {
-      result.pop();
+
+    let totalResult = numbersArray;
+    if (parseInt(lastValue) === NaN) {
+      totalResult.pop();
     }
-    console.log(result)
 
+    let operations = totalResult.filter(value => Operations.includes(value))
+    operations.map(op => {
+      if (op === '/' || op === '*') {
+        let nextOperation = totalResult.indexOf(op);
+        let firstValue = Number(totalResult[nextOperation - 1]);
+        let secondValue = Number(totalResult[nextOperation + 1]);
+        let parcialResult = DoOperation(op, firstValue, secondValue)
 
+        totalResult.splice(nextOperation - 1, 3, parcialResult.toString())
+      }
+    })
+
+    operations = totalResult.filter(value => Operations.includes(value))
+    operations.map(op => {
+      if (op === '+' || op === '-') {
+        let nextOperation = totalResult.indexOf(op);
+        let firstValue = Number(totalResult[nextOperation - 1]);
+        let secondValue = Number(totalResult[nextOperation + 1]);
+        let parcialResult = DoOperation(op, firstValue, secondValue)
+
+        totalResult.splice(nextOperation - 1, 3, parcialResult.toString())
+      }
+    })
+
+    if (totalResult.length > 1) {
+      throw new Error("Calculation failed");
+    }
+
+    setExpression(totalResult[0])
+
+  }
+
+  function DoOperation(op: string, firstValue: number, secondValue: number) : number {
+    switch (op) {
+      case '+':
+        return firstValue + secondValue;
+      case '-':
+        return firstValue - secondValue;
+      case '*':
+        return firstValue * secondValue;        
+      case '/':
+        return firstValue / secondValue;        
+      default:
+        throw new Error("Operation " + op + "is not defined.");
+        
+    }
   }
 
   return (
@@ -121,57 +160,10 @@ export default function Home() {
         <div className='min-h-[2.5rem] break-all text-right w-full bg-slate-600 flex place-content-end place-items-center pr-1 text-2xl'>{expression}</div>
         <div className='h-7 w-full text-right bg-slate-700 pr-1'>{lastValue}</div>
         <div id="grid-container" className="grid grid-cols-4 gap-[1px]">
-{/* 
-          <button className="bg-black p-5 col-span-2" onClick={handleClear} id='AC'> AC</button>
-          <button className="bg-black p-5" onClick={handleOperation} id='/'>/</button>
-          <button className="bg-black p-5" onClick={handleOperation} id='*'>*</button>
-
-          <button className="bg-black p-5" onClick={handleExpression} id='7'>7</button>
-          <button className="bg-black p-5" onClick={handleExpression} id='8'>8</button>
-          <button className="bg-black p-5" onClick={handleExpression} id='9'>9</button>
-          <button className="bg-black p-5" onClick={handleOperation} id='-'>-</button>
-
-          <button className="bg-black p-5" onClick={handleExpression} id='4'>4</button>
-          <button className="bg-black p-5" onClick={handleExpression} id='5'>5</button>
-          <button className="bg-black p-5" onClick={handleExpression} id='6'>6</button>
-          <button className="bg-black p-5" onClick={handleOperation} id='+'>+</button>
-
-          <button className="bg-black p-5" onClick={handleExpression} id='1'>1</button>
-          <button className="bg-black p-5" onClick={handleExpression} id='2'>2</button>
-          <button className="bg-black p-5" onClick={handleExpression} id='3'>3</button>
-          <button className="bg-black p-5 row-span-2" onClick={handleOperation} id='='>=</button>
-
-          <button className="bg-black p-5 col-span-2" onClick={handleExpression} id='0'>0</button>
-          <button className="bg-black p-5" onClick={handleDecimalPoint} id='.'>.</button> */}
-
-
 
           {calcItems.map(calculatorItem => <CalcButton key={calculatorItem.id} {...calculatorItem}>
                                             {calculatorItem.operation}
                                            </CalcButton>)}
-
-          {/* <CalcButton execution={handleClear}> AC</CalcButton>
-          <CalcButton execution={handleOperation}>/</CalcButton>
-          <CalcButton execution={handleOperation}>*</CalcButton>
-          <CalcButton execution={handleDeletion}>&lt;</CalcButton>
-
-          <CalcButton execution={handleExpression}>7</CalcButton>
-          <CalcButton execution={handleExpression}>8</CalcButton>
-          <CalcButton execution={handleExpression}>9</CalcButton>
-          <CalcButton execution={handleOperation}>-</CalcButton>
-
-          <CalcButton execution={handleExpression}>4</CalcButton>
-          <CalcButton execution={handleExpression}>5</CalcButton>
-          <CalcButton execution={handleExpression}>6</CalcButton>
-          <CalcButton execution={handleOperation}>+</CalcButton>
-
-          <CalcButton execution={handleExpression}>1</CalcButton>
-          <CalcButton execution={handleExpression}>2</CalcButton>
-          <CalcButton execution={handleExpression}>3</CalcButton>
-          <CalcButton execution={handleCalculation} style=" row-span-2" >=</CalcButton>
-
-          <CalcButton execution={handleExpression} style=" col-span-2" >0</CalcButton>
-          <CalcButton execution={handleDecimalPoint}>.</CalcButton> */}
           
         </div>
       </div>
