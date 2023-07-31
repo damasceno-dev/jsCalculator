@@ -1,4 +1,6 @@
 # todo:
+> (ok) made a function to replace both multiply-division and sum-substraction operations
+> do digital limit to enter to only apear on last value
 > button glow blue borders when hovered
 > font for display (calculator font)
 > font for buttons

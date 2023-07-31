@@ -45,10 +45,25 @@ export default function Home() {
   const splitOp = /(\*-|\+-|\--|\/-|\*|\+|\-|\/)/;
   const numbersArray = expression.split(splitOp);
   const lastElement = numbersArray[numbersArray.length -1];
-  const lastValue = lastElement === '' ? numbersArray[numbersArray.length -2] : lastElement;
+  let lastValue = lastElement === '' ? numbersArray[numbersArray.length -2] : lastElement;
 
   function handleExpression(event : MouseEvent<HTMLElement>) {
+    console.log(expression)
+    console.log(lastValue.length)
+    if (lastValue.length +1 > 5) {
 
+      let backupLastValue = lastValue;
+      lastValue = 'MAX VALUE REACHED'
+      setTimeout(() => {
+        lastValue = backupLastValue;
+      }, 1000);
+      setExpression(prev => {
+        setExpression('MAX VALUE REACHED!')
+        setTimeout(() => {
+          setExpression(prev);
+        }, 1000);
+      })
+    }
     let nextValue = (event.target as Element).innerHTML;
     if (lastValue === '0' && nextValue === '0') {
       return;
@@ -71,8 +86,7 @@ export default function Home() {
     let lastCharacter = expression.charAt(expression.length -1);
     let anteLastCharacter = expression.charAt(expression.length -2);
     let lastTwoCharacters = expression.substring(expression.length -2);
-    console.log(anteLastCharacter)
-    console.log(lastTwoCharacters)
+
     if (Operations.includes(lastCharacter)) { 
       if( nextOperator !== '-') {
         if (!MinusOperations.includes(lastCharacter + nextOperator) && Operations.includes(anteLastCharacter)) {
@@ -85,7 +99,7 @@ export default function Home() {
         newExpression = expression.slice(0,-1); //cases like 8+- falls here, and we dont allow another minus '-' to be entered
       }
       setExpression(newExpression + nextOperator);
-    } else { //first time setting and operation falls heere
+    } else { //first time setting and operation falls here
       setExpression(prev => prev + nextOperator);
     }
   }
@@ -113,43 +127,42 @@ export default function Home() {
 
   function handleCalculation() {
 
-    let totalResult = numbersArray;
-    console.log(numbersArray)
+    let totalResult = numbersArray.slice();
     if (parseInt(lastValue) === NaN) {
       totalResult.pop();
     }
 
-    let operations = totalResult.filter(value =>MinusOperations.includes(value) || Operations.includes(value))
-    console.log(operations)
-    operations.map(op => {
+    let multiplyAndDivisionOperations = totalResult.filter(value =>MinusOperations.includes(value) || Operations.includes(value))
+    multiplyAndDivisionOperations.map(op => {
       if (op === '/' || op === '*' || op === '*-' || op === '/-') {
-        let nextOperation = totalResult.indexOf(op);
-        let firstValue = Number(totalResult[nextOperation - 1]);
-        let secondValue = Number(totalResult[nextOperation + 1]);
-        let parcialResult = DoOperation(op, firstValue, secondValue)
-
-        totalResult.splice(nextOperation - 1, 3, parcialResult.toString())
+        totalResult = ResolveOperation(op, totalResult)
+        console.log(totalResult)
       } 
     })
 
-    operations = totalResult.filter(value =>MinusOperations.includes(value) || Operations.includes(value))
-    operations.map(op => {
+    let sumAndSubstractOperations = totalResult.filter(value =>MinusOperations.includes(value) || Operations.includes(value))
+    sumAndSubstractOperations.map(op => {
       if (op === '+' || op === '-'|| op === '+-' || op === '--') {
-        let nextOperation = totalResult.indexOf(op);
-        let firstValue = Number(totalResult[nextOperation - 1]);
-        let secondValue = Number(totalResult[nextOperation + 1]);
-        let parcialResult = DoOperation(op, firstValue, secondValue)
-
-        totalResult.splice(nextOperation - 1, 3, parcialResult.toString())
+        totalResult = ResolveOperation(op, totalResult)
       }
     })
-
+    console.log(totalResult)
     if (totalResult.length > 1) {
       throw new Error("Calculation failed");
     }
 
     setExpression(totalResult[0])
 
+  }
+
+  function ResolveOperation(operation:string, expressionArray: string[]) : string[] {
+    console.log(operation, expressionArray)
+    let nextOperation = expressionArray.indexOf(operation); console.log(nextOperation)
+    let firstValue = Number(expressionArray[nextOperation - 1]); console.log(firstValue)
+    let secondValue = Number(expressionArray[nextOperation + 1]); console.log(secondValue)
+    let parcialResult = DoOperation(operation, firstValue, secondValue); console.log(parcialResult)
+    expressionArray.splice(nextOperation - 1, 3, parcialResult.toString())
+    return expressionArray
   }
 
   function DoOperation(op: string, firstValue: number, secondValue: number) : number {
@@ -172,7 +185,6 @@ export default function Home() {
         return firstValue /- secondValue;        
       default:
         throw new Error("Operation " + op + "is not defined.");
-        
     }
   }
 
