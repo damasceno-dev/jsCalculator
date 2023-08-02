@@ -1,5 +1,5 @@
 'use client'
-import React, {MouseEvent, useState } from "react"
+import React, {MouseEvent, useEffect, useState } from "react"
 
 interface calcItem {
    id: string;
@@ -40,31 +40,40 @@ export default function Home() {
   const Operations = ['+', '-', '/', '*']
   const MinusOperations = ['+-', '--', '/-', '*-']
   const [expression, setExpression] = useState('0');
-
   // const splitOp = /(\*|\+|\-|\/)/;
   const splitOp = /(\*-|\+-|\--|\/-|\*|\+|\-|\/)/;
   const numbersArray = expression.split(splitOp);
   const lastElement = numbersArray[numbersArray.length -1];
   let lastValue = lastElement === '' ? numbersArray[numbersArray.length -2] : lastElement;
+  const [maxLimitReached, setMaxLimitReached] = useState(false);
+  const [maxLimitMessage, setMaxLimitMessage] = useState('');
+  const [finishedSendingMessage, setFinishedSendingMessage] = useState(true);
+    
+  function verifyMaxDigitLimit() {     
+    if (finishedSendingMessage) {
+      setFinishedSendingMessage(false)
+          setMaxLimitReached(true)
+          setMaxLimitMessage('MAX DIGIT LIMIT HAS BEEN REACHED')
+
+          setTimeout(() => {
+            setMaxLimitMessage(lastValue)
+            setFinishedSendingMessage(true)
+          }, 1000);
+    }
+  }
 
   function handleExpression(event : MouseEvent<HTMLElement>) {
-    console.log(expression)
-    console.log(lastValue.length)
-    if (lastValue.length +1 > 5) {
-
-      let backupLastValue = lastValue;
-      lastValue = 'MAX VALUE REACHED'
-      setTimeout(() => {
-        lastValue = backupLastValue;
-      }, 1000);
-      setExpression(prev => {
-        setExpression('MAX VALUE REACHED!')
-        setTimeout(() => {
-          setExpression(prev);
-        }, 1000);
-      })
-    }
+    
     let nextValue = (event.target as Element).innerHTML;
+    // setMaxLimitMessage(lastValue)
+
+    if (lastValue.length +1 > 30) {
+      verifyMaxDigitLimit()
+      return;
+    } else {
+      setMaxLimitReached(false)
+    }
+
     if (lastValue === '0' && nextValue === '0') {
       return;
     } else if (lastValue === '0' && nextValue !== '0') {
@@ -73,10 +82,13 @@ export default function Home() {
     } else {
       setExpression(prev => prev + nextValue)
     }
+    
   }
 
   function handleClear() {
-    setExpression('0')
+    setExpression('0');
+    setMaxLimitReached(false)
+    
   }
 
   function handleOperation(event : MouseEvent<HTMLElement>) {
@@ -102,22 +114,33 @@ export default function Home() {
     } else { //first time setting and operation falls here
       setExpression(prev => prev + nextOperator);
     }
+    
   }
 
   function handleDecimalPoint(event : MouseEvent<HTMLElement>) {
-    if (lastValue === '') {
-      let valueToAdd = '0.'
-      setExpression(prev => prev + valueToAdd);
-      return;
-    }
+    
     if (lastValue.includes('.')) {
       return;
     } else {
       setExpression(prev => prev + (event.target as Element).innerHTML)
     }
+    if (lastValue.length +1 > 29) {
+      verifyMaxDigitLimit()
+      return;
+    } else {
+      setMaxLimitReached(false)
+    }
+
+    if (lastValue === '') {
+      let valueToAdd = '0.'
+      setExpression(prev => prev + valueToAdd);
+      return;
+    }
+    
   }
 
   function handleDeletion() {
+    setMaxLimitReached(false)
     let newExpression = expression.slice(0,-1);
     if (newExpression === '') {
       newExpression = '0';
@@ -146,22 +169,28 @@ export default function Home() {
         totalResult = ResolveOperation(op, totalResult)
       }
     })
-    console.log(totalResult)
+    
     if (totalResult.length > 1) {
       throw new Error("Calculation failed");
     }
 
+    lastValue = totalResult[0];
     setExpression(totalResult[0])
+    console.log(numbersArray)
+    console.log(lastValue)
 
   }
 
   function ResolveOperation(operation:string, expressionArray: string[]) : string[] {
-    console.log(operation, expressionArray)
-    let nextOperation = expressionArray.indexOf(operation); console.log(nextOperation)
-    let firstValue = Number(expressionArray[nextOperation - 1]); console.log(firstValue)
-    let secondValue = Number(expressionArray[nextOperation + 1]); console.log(secondValue)
-    let parcialResult = DoOperation(operation, firstValue, secondValue); console.log(parcialResult)
+
+    let nextOperation = expressionArray.indexOf(operation);
+    let firstValue = Number(expressionArray[nextOperation - 1]);
+    let secondValue = Number(expressionArray[nextOperation + 1]);
+
+    let parcialResult = DoOperation(operation, firstValue, secondValue);
+
     expressionArray.splice(nextOperation - 1, 3, parcialResult.toString())
+
     return expressionArray
   }
 
@@ -192,7 +221,9 @@ export default function Home() {
     <main className="flex items-center justify-center h-screen bg-slate-800 text-white select-none">
       <div className='w-80 bg-slate-500 border border-white'>
         <div id='display' className='min-h-[2.5rem] break-all text-right w-full bg-slate-600 flex place-content-end place-items-center pr-1 text-2xl'>{expression}</div>
-        <div className='h-7 w-full text-right bg-slate-700 pr-1'>{lastValue}</div>
+        <div className='h-7 w-full text-right bg-slate-700 pr-1'>
+          {maxLimitReached ? maxLimitMessage : lastValue}
+        </div>
         <div id="grid-container" className="grid grid-cols-4 gap-[1px]">
 
           {calcItems.map(calculatorItem => <CalcButton key={calculatorItem.id} {...calculatorItem}>
