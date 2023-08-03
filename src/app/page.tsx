@@ -1,5 +1,5 @@
 'use client'
-import React, {MouseEvent, useEffect, useState } from "react"
+import React, {MouseEvent, useState } from "react"
 
 interface calcItem {
    id: string;
@@ -41,8 +41,10 @@ export default function Home() {
   const MinusOperations = ['+-', '--', '/-', '*-']
   const [expression, setExpression] = useState('0');
   // const splitOp = /(\*|\+|\-|\/)/;
-  const splitOp = /(\*-|\+-|\--|\/-|\*|\+|\-|\/)/;
+  const splitOp = /(\*-|\+-|\--|\/-|\*|(?<=.?\d)\+|(?<=.?\d)\-|\/)/;
+  // (?<=.+\d)\+ => to split cases with exponencial number
   const numbersArray = expression.split(splitOp);
+  
   const lastElement = numbersArray[numbersArray.length -1];
   let lastValue = lastElement === '' ? numbersArray[numbersArray.length -2] : lastElement;
   const [maxLimitReached, setMaxLimitReached] = useState(false);
@@ -51,14 +53,15 @@ export default function Home() {
     
   function verifyMaxDigitLimit() {     
     if (finishedSendingMessage) {
-      setFinishedSendingMessage(false)
-          setMaxLimitReached(true)
-          setMaxLimitMessage('MAX DIGIT LIMIT HAS BEEN REACHED')
 
-          setTimeout(() => {
-            setMaxLimitMessage(lastValue)
-            setFinishedSendingMessage(true)
-          }, 1000);
+      setFinishedSendingMessage(false)
+      setMaxLimitReached(true)
+      setMaxLimitMessage('MAX DIGIT LIMIT HAS BEEN REACHED')
+
+      setTimeout(() => {
+        setMaxLimitMessage(lastValue)
+        setFinishedSendingMessage(true)
+      }, 1000);
     }
   }
 
@@ -141,7 +144,11 @@ export default function Home() {
 
   function handleDeletion() {
     setMaxLimitReached(false)
+    
     let newExpression = expression.slice(0,-1);
+    if (lastValue.includes('e')) {
+      newExpression= '0';
+    }
     if (newExpression === '') {
       newExpression = '0';
     }
@@ -150,7 +157,7 @@ export default function Home() {
 
   function handleCalculation() {
 
-    let totalResult = numbersArray.slice();
+    let totalResult = numbersArray.slice(); 
     if (parseInt(lastValue) === NaN) {
       totalResult.pop();
     }
@@ -159,12 +166,13 @@ export default function Home() {
     multiplyAndDivisionOperations.map(op => {
       if (op === '/' || op === '*' || op === '*-' || op === '/-') {
         totalResult = ResolveOperation(op, totalResult)
-        console.log(totalResult)
+        
       } 
     })
 
     let sumAndSubstractOperations = totalResult.filter(value =>MinusOperations.includes(value) || Operations.includes(value))
     sumAndSubstractOperations.map(op => {
+      
       if (op === '+' || op === '-'|| op === '+-' || op === '--') {
         totalResult = ResolveOperation(op, totalResult)
       }
@@ -174,20 +182,19 @@ export default function Home() {
       throw new Error("Calculation failed");
     }
 
+    
     lastValue = totalResult[0];
+    
     setExpression(totalResult[0])
-    console.log(numbersArray)
-    console.log(lastValue)
-
   }
 
   function ResolveOperation(operation:string, expressionArray: string[]) : string[] {
 
-    let nextOperation = expressionArray.indexOf(operation);
-    let firstValue = Number(expressionArray[nextOperation - 1]);
-    let secondValue = Number(expressionArray[nextOperation + 1]);
+    let nextOperation = expressionArray.indexOf(operation); 
+    let firstValue = Number(expressionArray[nextOperation - 1]); 
+    let secondValue = Number(expressionArray[nextOperation + 1]);  
 
-    let parcialResult = DoOperation(operation, firstValue, secondValue);
+    let parcialResult = DoOperation(operation, firstValue, secondValue); 
 
     expressionArray.splice(nextOperation - 1, 3, parcialResult.toString())
 
@@ -218,13 +225,13 @@ export default function Home() {
   }
 
   return (
-    <main className="flex items-center justify-center h-screen bg-slate-800 text-white select-none">
+    <main className="flex items-center justify-center h-screen bg-slate-800 text-white">
       <div className='w-80 bg-slate-500 border border-white'>
         <div id='display' className='min-h-[2.5rem] break-all text-right w-full bg-slate-600 flex place-content-end place-items-center pr-1 text-2xl'>{expression}</div>
         <div className='h-7 w-full text-right bg-slate-700 pr-1'>
           {maxLimitReached ? maxLimitMessage : lastValue}
         </div>
-        <div id="grid-container" className="grid grid-cols-4 gap-[1px]">
+        <div id="grid-container" className="grid grid-cols-4 gap-[1px] select-none">
 
           {calcItems.map(calculatorItem => <CalcButton key={calculatorItem.id} {...calculatorItem}>
                                             {calculatorItem.operation}
@@ -247,7 +254,6 @@ interface ButtonProps {
 
 function CalcButton({id, style, background = 'bg-black', children, execution} : ButtonProps) {
   const styleToReturn = 'p-5 ' + style + ' ' + background;
-  const textRender = children?.toString();
   return (
     <button className={styleToReturn} onClick={execution} id={id}>
       {children}
