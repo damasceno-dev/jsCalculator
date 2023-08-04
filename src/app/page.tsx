@@ -6,6 +6,7 @@ interface calcItem {
    operation: string;
    execution: (event: MouseEvent<HTMLElement>) => void;
    style?: string;
+   background?: string;
 }
 
 type calcArray = calcItem[]
@@ -13,7 +14,7 @@ type calcArray = calcItem[]
 export default function Home() {
      
   const calcItems : calcArray = [
-    {id: 'clear', operation: 'AC', execution: handleClear},
+    {id: 'clear', operation: 'AC', execution: handleClear, background:'bg-sky-950' },
     {id: 'divide', operation: '/', execution: handleOperation},
     {id: 'multiply', operation: '*', execution: handleOperation},
     {id: 'delete', operation: '<', execution: handleDeletion},
@@ -31,7 +32,7 @@ export default function Home() {
     {id: 'one', operation: '1', execution: handleExpression},
     {id: 'two', operation: '2', execution: handleExpression},
     {id: 'three', operation: '3', execution: handleExpression},
-    {id: 'equals', operation: '=', execution: handleCalculation, style: 'row-span-2'},
+    {id: 'equals', operation: '=', execution: handleCalculation, style: 'row-span-2', background: 'bg-sky-900'},
 
     {id: 'zero', operation: '0', execution: handleExpression, style: 'col-span-2'},
     {id: 'decimal', operation: '.', execution: handleDecimalPoint}]
@@ -43,6 +44,8 @@ export default function Home() {
   // const splitOp = /(\*|\+|\-|\/)/;
   const splitOp = /(\*-|\+-|\--|\/-|\*|(?<=.?\d)\+|(?<=.?\d)\-|\/)/;
   // (?<=.+\d)\+ => to split cases with exponencial number
+  //e.g: 1.23e+23 => its not going to split because we have to have a digit preceeding the plus sign 
+  //(?<=) regex lookbehind
   const numbersArray = expression.split(splitOp);
   
   const lastElement = numbersArray[numbersArray.length -1];
@@ -50,11 +53,12 @@ export default function Home() {
   const [maxLimitReached, setMaxLimitReached] = useState(false);
   const [maxLimitMessage, setMaxLimitMessage] = useState('');
   const [finishedSendingMessage, setFinishedSendingMessage] = useState(true);
-    
+  const maxDigitLimit = 30;
+
   function verifyMaxDigitLimit() {     
     if (finishedSendingMessage) {
 
-      setFinishedSendingMessage(false)
+      setFinishedSendingMessage(false) //avoid bug when button is clicked multiple times fast
       setMaxLimitReached(true)
       setMaxLimitMessage('MAX DIGIT LIMIT HAS BEEN REACHED')
 
@@ -65,12 +69,23 @@ export default function Home() {
     }
   }
 
-  function handleExpression(event : MouseEvent<HTMLElement>) {
+  function verifyInfinityOrNaN(event : MouseEvent<HTMLElement>) {
     
     let nextValue = (event.target as Element).innerHTML;
-    // setMaxLimitMessage(lastValue)
+    if (lastValue === 'Infinity' || lastValue === 'NaN') {
+      Operations.includes(nextValue) ? 
+      setExpression('0') :
+      setExpression('')
+    }
+  }
 
-    if (lastValue.length +1 > 30) {
+  function handleExpression(event : MouseEvent<HTMLElement>) {
+    
+    verifyInfinityOrNaN(event)
+
+    let nextValue = (event.target as Element).innerHTML;
+
+    if (lastValue.length +1 > maxDigitLimit) {
       verifyMaxDigitLimit()
       return;
     } else {
@@ -91,22 +106,23 @@ export default function Home() {
   function handleClear() {
     setExpression('0');
     setMaxLimitReached(false)
-    
   }
 
   function handleOperation(event : MouseEvent<HTMLElement>) {
 
+    verifyInfinityOrNaN(event)
+
     let newExpression = expression;
     let nextOperator = (event.target as Element).innerHTML;
     let lastCharacter = expression.charAt(expression.length -1);
-    let anteLastCharacter = expression.charAt(expression.length -2);
+    let antePenultimate = expression.charAt(expression.length -2);
     let lastTwoCharacters = expression.substring(expression.length -2);
 
     if (Operations.includes(lastCharacter)) { 
       if( nextOperator !== '-') {
-        if (!MinusOperations.includes(lastCharacter + nextOperator) && Operations.includes(anteLastCharacter)) {
+        if (!MinusOperations.includes(lastCharacter + nextOperator) && Operations.includes(antePenultimate)) {
           newExpression = expression.slice(0,-2) //cases like 8+-* => the * operator must replace + and -. 
-                                                 //but in cases like 8** => the * operator can't replace both, thats why we check the ante last character to not be a number
+                                                 //but in cases like 8** => the * operator can't replace both, thats why we check the antepenultimate character to not be a number
         } else {
           newExpression = expression.slice(0,-1) // 8** falls here, and we dont allow the next * to be entered
         }
@@ -122,16 +138,18 @@ export default function Home() {
 
   function handleDecimalPoint(event : MouseEvent<HTMLElement>) {
     
-    if (lastValue.includes('.')) {
-      return;
-    } else {
-      setExpression(prev => prev + (event.target as Element).innerHTML)
-    }
-    if (lastValue.length +1 > 29) {
+    if (lastValue.length +1 > maxDigitLimit - 1) {
+      //when using decimals, we need at least 2 free digits
       verifyMaxDigitLimit()
       return;
     } else {
       setMaxLimitReached(false)
+    }
+
+    if (lastValue.includes('.')) {
+      return;
+    } else {
+      setExpression(prev => prev + (event.target as Element).innerHTML)
     }
 
     if (lastValue === '') {
@@ -146,7 +164,8 @@ export default function Home() {
     setMaxLimitReached(false)
     
     let newExpression = expression.slice(0,-1);
-    if (lastValue.includes('e')) {
+    if (lastValue.includes('e') || lastValue.includes('Infinit') || 
+        lastValue.includes('Na') ) {
       newExpression= '0';
     }
     if (newExpression === '') {
@@ -231,7 +250,7 @@ export default function Home() {
         <div className='h-7 w-full text-right bg-slate-700 pr-1'>
           {maxLimitReached ? maxLimitMessage : lastValue}
         </div>
-        <div id="grid-container" className="grid grid-cols-4 gap-[1px] select-none">
+        <div id="grid-container" className="grid grid-cols-4 gap-[0.8px] select-none">
 
           {calcItems.map(calculatorItem => <CalcButton key={calculatorItem.id} {...calculatorItem}>
                                             {calculatorItem.operation}
@@ -253,7 +272,9 @@ interface ButtonProps {
 }
 
 function CalcButton({id, style, background = 'bg-black', children, execution} : ButtonProps) {
-  const styleToReturn = 'p-5 ' + style + ' ' + background;
+  const styleToReturn = 'p-5 text-slate-400 hover:text-white border-none hover:outline hover:outline-1 hover:outline-white' +
+                        ' ' + 'hover:transition-all duration-300' + ' ' +
+                        style + ' ' + background;
   return (
     <button className={styleToReturn} onClick={execution} id={id}>
       {children}
