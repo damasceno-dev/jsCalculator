@@ -1,6 +1,11 @@
 'use client'
 import React, {MouseEvent, useState } from "react"
 
+import { Orbitron, Nova_Square } from 'next/font/google'
+
+const orbitron = Orbitron({subsets: ['latin'], variable: '--font-orbitron', weight: '400'})
+const novaSquare = Nova_Square({subsets: ['latin'], variable: '--font-novasquare', weight: '400'})
+
 interface calcItem {
    id: string;
    operation: string;
@@ -14,20 +19,20 @@ type calcArray = calcItem[]
 export default function Home() {
      
   const calcItems : calcArray = [
-    {id: 'clear', operation: 'AC', execution: handleClear, background:'bg-sky-950' },
-    {id: 'divide', operation: '/', execution: handleOperation},
-    {id: 'multiply', operation: '*', execution: handleOperation},
-    {id: 'delete', operation: '<', execution: handleDeletion},
+    {id: 'clear', operation: 'AC', execution: handleClear, background:'bg-cyan-950' },
+    {id: 'divide', operation: '/', execution: handleOperation, background:'bg-gray-800' },
+    {id: 'multiply', operation: '*', execution: handleOperation, background:'bg-gray-800' },
+    {id: 'delete', operation: '<', execution: handleDeletion, background:'bg-gray-800' },
 
     {id: 'seven', operation: '7', execution: handleExpression},
     {id: 'eight', operation: '8', execution: handleExpression},
     {id: 'nine', operation: '9', execution: handleExpression},
-    {id: 'subtract', operation: '-', execution: handleOperation},
+    {id: 'subtract', operation: '-', execution: handleOperation, background:'bg-gray-800' },
 
     {id: 'four', operation: '4', execution: handleExpression},
     {id: 'five', operation: '5', execution: handleExpression},
     {id: 'six', operation: '6', execution: handleExpression},
-    {id: 'add', operation: '+', execution: handleOperation},
+    {id: 'add', operation: '+', execution: handleOperation, background:'bg-gray-800' },
 
     {id: 'one', operation: '1', execution: handleExpression},
     {id: 'two', operation: '2', execution: handleExpression},
@@ -53,7 +58,7 @@ export default function Home() {
   const [maxLimitReached, setMaxLimitReached] = useState(false);
   const [maxLimitMessage, setMaxLimitMessage] = useState('');
   const [finishedSendingMessage, setFinishedSendingMessage] = useState(true);
-  const maxDigitLimit = 30;
+  const maxDigitLimit = 28;
 
   function verifyMaxDigitLimit() {     
     if (finishedSendingMessage) {
@@ -244,13 +249,13 @@ export default function Home() {
   }
 
   return (
-    <main className="flex items-center justify-center h-screen bg-slate-800 text-white">
+    <main className="flex items-center justify-center h-screen bg-slate-800 text-white ">
       <div className='w-80 bg-slate-500 border border-white'>
-        <div id='display' className='min-h-[2.5rem] break-all text-right w-full bg-slate-600 flex place-content-end place-items-center pr-1 text-2xl'>{expression}</div>
-        <div className='h-7 w-full text-right bg-slate-700 pr-1'>
+        <div id='display' className={`min-h-[2.5rem] break-all text-cyan-100 text-right w-full bg-slate-600 flex place-content-end place-items-center pr-1 text-2xl ${novaSquare.className}`}>{expression}</div>
+        <div className={`h-7 w-full text-right bg-slate-700 pr-1 text-cyan-200 ${novaSquare.className}`}>
           {maxLimitReached ? maxLimitMessage : lastValue}
         </div>
-        <div id="grid-container" className="grid grid-cols-4 gap-[0.8px] select-none">
+        <div id="grid-container" className={`grid grid-cols-4 gap-[0.8px] select-none ${orbitron.className}`}>
 
           {calcItems.map(calculatorItem => <CalcButton key={calculatorItem.id} {...calculatorItem}>
                                             {calculatorItem.operation}

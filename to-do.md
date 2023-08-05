@@ -1,8 +1,8 @@
 # todo:
 > (ok) button glow blue borders when hovered
 > icon for backspace
-> font for display (calculator font)
-> font for buttons
+> (ok) font for display (calculator font)
+> (ok) font for buttons
 > (ok) correct bug when result is too big
 > (ok) made a function to replace both multiply-division and sum-substraction operations
 > (ok) do digital limit to enter to only apear on last value
