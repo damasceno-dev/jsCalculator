@@ -1,6 +1,6 @@
 # todo:
 > (ok) button glow blue borders when hovered
-> icon for backspace
+> (ok) icon for backspace
 > (ok) font for display (calculator font)
 > (ok) font for buttons
 > (ok) correct bug when result is too big

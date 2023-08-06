@@ -1,7 +1,12 @@
 'use client'
 import React, {MouseEvent, useState } from "react"
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faDeleteLeft, faDivide, faEquals, faMinus, faMultiply, faPlus } from "@fortawesome/free-solid-svg-icons";
 
+
+// icon({name: 'user', family: 'classic', style: 'solid'})
 import { Orbitron, Nova_Square } from 'next/font/google'
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 const orbitron = Orbitron({subsets: ['latin'], variable: '--font-orbitron', weight: '400'})
 const novaSquare = Nova_Square({subsets: ['latin'], variable: '--font-novasquare', weight: '400'})
@@ -12,6 +17,7 @@ interface calcItem {
    execution: (event: MouseEvent<HTMLElement>) => void;
    style?: string;
    background?: string;
+   icon?: IconDefinition;
 }
 
 type calcArray = calcItem[]
@@ -20,28 +26,27 @@ export default function Home() {
      
   const calcItems : calcArray = [
     {id: 'clear', operation: 'AC', execution: handleClear, background:'bg-cyan-950' },
-    {id: 'divide', operation: '/', execution: handleOperation, background:'bg-gray-800' },
-    {id: 'multiply', operation: '*', execution: handleOperation, background:'bg-gray-800' },
-    {id: 'delete', operation: '<', execution: handleDeletion, background:'bg-gray-800' },
+    {id: 'divide', operation: '/', execution: handleOperation, background:'bg-gray-800', icon: faDivide },
+    {id: 'multiply', operation: '*', execution: handleOperation, background:'bg-gray-800', icon: faMultiply },
+    {id: 'delete', operation: '<', execution: handleDeletion, background:'bg-gray-800', icon: faDeleteLeft },
 
     {id: 'seven', operation: '7', execution: handleExpression},
     {id: 'eight', operation: '8', execution: handleExpression},
     {id: 'nine', operation: '9', execution: handleExpression},
-    {id: 'subtract', operation: '-', execution: handleOperation, background:'bg-gray-800' },
+    {id: 'subtract', operation: '-', execution: handleOperation, background:'bg-gray-800', icon: faMinus },
 
     {id: 'four', operation: '4', execution: handleExpression},
     {id: 'five', operation: '5', execution: handleExpression},
     {id: 'six', operation: '6', execution: handleExpression},
-    {id: 'add', operation: '+', execution: handleOperation, background:'bg-gray-800' },
+    {id: 'add', operation: '+', execution: handleOperation, background:'bg-gray-800', icon: faPlus },
 
     {id: 'one', operation: '1', execution: handleExpression},
     {id: 'two', operation: '2', execution: handleExpression},
     {id: 'three', operation: '3', execution: handleExpression},
-    {id: 'equals', operation: '=', execution: handleCalculation, style: 'row-span-2', background: 'bg-sky-900'},
+    {id: 'equals', operation: '=', execution: handleCalculation, style: 'row-span-2', background: 'bg-sky-900', icon: faEquals},
 
     {id: 'zero', operation: '0', execution: handleExpression, style: 'col-span-2'},
     {id: 'decimal', operation: '.', execution: handleDecimalPoint}]
-
 
   const Operations = ['+', '-', '/', '*']
   const MinusOperations = ['+-', '--', '/-', '*-']
@@ -114,11 +119,15 @@ export default function Home() {
   }
 
   function handleOperation(event : MouseEvent<HTMLElement>) {
-
     verifyInfinityOrNaN(event)
 
     let newExpression = expression;
-    let nextOperator = (event.target as Element).innerHTML;
+    let nextOperator = (event.target as HTMLInputElement).name;
+
+    if (nextOperator === undefined) {
+      nextOperator = ((event.target as HTMLElement).parentElement as HTMLInputElement).getAttribute('name') as string;
+    }
+
     let lastCharacter = expression.charAt(expression.length -1);
     let antePenultimate = expression.charAt(expression.length -2);
     let lastTwoCharacters = expression.substring(expression.length -2);
@@ -244,7 +253,7 @@ export default function Home() {
       case '/-':
         return firstValue /- secondValue;        
       default:
-        throw new Error("Operation " + op + "is not defined.");
+        throw new Error("Operation " + op + " is not defined.");
     }
   }
 
@@ -268,21 +277,27 @@ export default function Home() {
 
 }
 
-interface ButtonProps {
-  id: string;
-  style?: string;
-  background?: string;
+interface ButtonProps extends calcItem {
   children: React.ReactNode;
-  execution: (event : MouseEvent<HTMLElement>) => void;
 }
 
-function CalcButton({id, style, background = 'bg-black', children, execution} : ButtonProps) {
-  const styleToReturn = 'p-5 text-slate-400 hover:text-white border-none hover:outline hover:outline-1 hover:outline-white' +
-                        ' ' + 'hover:transition-all duration-300' + ' ' +
+function CalcButton({id, style, background = 'bg-black', children, execution, icon, operation} : ButtonProps) {
+  const styleToReturn = 'group p-5 text-slate-400 hover:text-white border-none hover:outline hover:outline-1 hover:outline-white' +
+                        ' ' + 'hover:transition-all duration-500' + ' ' +
                         style + ' ' + background;
   return (
-    <button className={styleToReturn} onClick={execution} id={id}>
-      {children}
+    <button className={styleToReturn} onClick={execution} id={id} name={operation}>
+      {icon  ? 
+      <FontAwesomeIcon
+        name={operation}
+        icon={icon}
+        className="fas fa-check text-slate-400 group-hover:text-white group-hover:transition-all duration-500"
+        style={{ fontSize: 16 }}
+      /> : 
+      children
+      }
+      
+  {/* <FontAwesomeIcon icon="fa-solid fa-delete-left" /> */}
     </button>
   )
 }
