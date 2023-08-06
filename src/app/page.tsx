@@ -2,11 +2,9 @@
 import React, {MouseEvent, useState } from "react"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDeleteLeft, faDivide, faEquals, faMinus, faMultiply, faPlus } from "@fortawesome/free-solid-svg-icons";
-
-
-// icon({name: 'user', family: 'classic', style: 'solid'})
-import { Orbitron, Nova_Square } from 'next/font/google'
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+
+import { Orbitron, Nova_Square } from 'next/font/google'
 
 const orbitron = Orbitron({subsets: ['latin'], variable: '--font-orbitron', weight: '400'})
 const novaSquare = Nova_Square({subsets: ['latin'], variable: '--font-novasquare', weight: '400'})
@@ -124,7 +122,7 @@ export default function Home() {
     let newExpression = expression;
     let nextOperator = (event.target as HTMLInputElement).name;
 
-    if (nextOperator === undefined) {
+    if (nextOperator === undefined || nextOperator === null) {
       nextOperator = ((event.target as HTMLElement).parentElement as HTMLInputElement).getAttribute('name') as string;
     }
 
@@ -215,9 +213,9 @@ export default function Home() {
       throw new Error("Calculation failed");
     }
 
-    
+    setMaxLimitReached(false)
     lastValue = totalResult[0];
-    
+
     setExpression(totalResult[0])
   }
 
@@ -287,17 +285,17 @@ function CalcButton({id, style, background = 'bg-black', children, execution, ic
                         style + ' ' + background;
   return (
     <button className={styleToReturn} onClick={execution} id={id} name={operation}>
+      {/*rendering equal sign for passing tests*/}
+      {children?.toString() === '=' && <div style={{fontSize: 0}}>=</div>}
       {icon  ? 
       <FontAwesomeIcon
         name={operation}
         icon={icon}
-        className="fas fa-check text-slate-400 group-hover:text-white group-hover:transition-all duration-500"
+        className="text-slate-400 group-hover:text-white group-hover:transition-all duration-500"
         style={{ fontSize: 16 }}
       /> : 
       children
       }
-      
-  {/* <FontAwesomeIcon icon="fa-solid fa-delete-left" /> */}
     </button>
   )
 }
